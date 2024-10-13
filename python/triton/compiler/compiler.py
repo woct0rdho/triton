@@ -151,7 +151,11 @@ def triton_key():
 
     # backend
     libtriton_hash = hashlib.sha256()
-    with open(os.path.join(TRITON_PATH, "_C/libtriton.so"), "rb") as f:
+    if os.name == "nt":
+        so_name = "libtriton.pyd"
+    else:
+        so_name = "libtriton.so"
+    with open(os.path.join(TRITON_PATH, f"_C/{so_name}"), "rb") as f:
         while True:
             chunk = f.read(1024**2)
             if not chunk:

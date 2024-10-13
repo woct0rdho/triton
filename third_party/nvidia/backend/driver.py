@@ -11,12 +11,18 @@ from triton.backends.driver import GPUDriver
 
 dirname = os.path.dirname(os.path.realpath(__file__))
 include_dir = [os.path.join(dirname, "include")]
+if os.name == "nt":
+    cuda_path = os.environ.get("CUDA_PATH")
+    include_dir += [f"{cuda_path}\\include"]
 libdevice_dir = os.path.join(dirname, "lib")
 libraries = ['cuda']
 
 
 @functools.lru_cache()
 def libcuda_dirs():
+    if os.name == "nt":
+        return [os.path.join(cuda_path, "lib", "x64")]
+
     env_libcuda_path = os.getenv("TRITON_LIBCUDA_PATH")
     if env_libcuda_path:
         return [env_libcuda_path]
@@ -48,7 +54,11 @@ def library_dirs():
 def compile_module_from_src(src, name):
     key = hashlib.sha256(src.encode("utf-8")).hexdigest()
     cache = get_cache_manager(key)
-    cache_path = cache.get_file(f"{name}.so")
+    if os.name == "nt":
+        so_name = f"{name}.pyd"
+    else:
+        so_name = f"{name}.so"
+    cache_path = cache.get_file(so_name)
     if cache_path is None:
         with tempfile.TemporaryDirectory() as tmpdir:
             src_path = os.path.join(tmpdir, "main.c")
@@ -56,7 +66,7 @@ def compile_module_from_src(src, name):
                 f.write(src)
             so = _build(name, src_path, tmpdir, library_dirs(), include_dir, libraries)
             with open(so, "rb") as f:
-                cache_path = cache.put(f.read(), f"{name}.so", binary=True)
+                cache_path = cache.put(f.read(), so_name, binary=True)
     import importlib.util
     spec = importlib.util.spec_from_file_location(name, cache_path)
     mod = importlib.util.module_from_spec(spec)
