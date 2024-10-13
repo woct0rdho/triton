@@ -70,7 +70,7 @@ extern "C" {
  * @brief Macro to use to determine that a  flag is set when querying flags within uint8_t[8]
  * types
  */
-static __inline__ __attribute__((always_inline)) bool hsa_flag_isset64(uint8_t* value,
+static inline bool hsa_flag_isset64(uint8_t* value,
                                                                        uint32_t bit) {
   unsigned int index = bit / 8;
   unsigned int subBit = bit % 8;
@@ -1040,7 +1040,7 @@ typedef enum {
  * following its memory access model. The actual placement may vary or migrate
  * due to the system's NUMA policy and state, which is beyond the scope of
  * HSA APIs.
- */ 
+ */
 typedef struct hsa_amd_memory_pool_s {
   /**
    * Opaque handle.
@@ -2578,7 +2578,7 @@ typedef enum hsa_amd_svm_attribute_s {
   HSA_AMD_SVM_ATTRIB_ACCESS_QUERY = 0x203,
 } hsa_amd_svm_attribute_t;
 
-// List type for hsa_amd_svm_attributes_set/get. 
+// List type for hsa_amd_svm_attributes_set/get.
 typedef struct hsa_amd_svm_attribute_pair_s {
   // hsa_amd_svm_attribute_t value.
   uint64_t attribute;

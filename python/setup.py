@@ -390,7 +390,7 @@ class CMakeBuild(build_ext):
         cupti_lib_dir = get_env_with_keys(["TRITON_CUPTI_LIB_PATH"])
         if cupti_lib_dir == "":
             cupti_lib_dir = os.path.join(get_base_dir(), "third_party", "nvidia", "backend", "lib", "cupti")
-        cmake_args += ["-DCUPTI_LIB_DIR=" + cupti_lib_dir]
+        cmake_args += ["-DCUPTI_LIB_DIR=" + cupti_lib_dir.replace("\\", "/")]
         roctracer_include_dir = get_env_with_keys(["ROCTRACER_INCLUDE_PATH"])
         if roctracer_include_dir == "":
             roctracer_include_dir = os.path.join(get_base_dir(), "third_party", "amd", "backend", "include")
@@ -429,9 +429,10 @@ class CMakeBuild(build_ext):
         build_args = ["--config", cfg]
 
         if platform.system() == "Windows":
+            cmake_args += ["-DCMAKE_BUILD_TYPE=" + cfg]
             cmake_args += [f"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{cfg.upper()}={extdir}"]
-            if sys.maxsize > 2**32:
-                cmake_args += ["-A", "x64"]
+            # if sys.maxsize > 2**32:
+            #     cmake_args += ["-A", "x64"]
         else:
             cmake_args += ["-DCMAKE_BUILD_TYPE=" + cfg]
             max_jobs = os.getenv("MAX_JOBS", str(2 * os.cpu_count()))

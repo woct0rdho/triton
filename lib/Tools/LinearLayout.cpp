@@ -1023,6 +1023,25 @@ LinearLayout LinearLayout::invertAndCompose(const LinearLayout &outer) const {
   return flatComposed.reshapeIns(retInDims).reshapeOuts(retOutDims);
 }
 
+static __forceinline int __builtin_ctzll(unsigned long long x)
+{
+#if defined(_M_ARM) || defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC)
+    return (int)_CountTrailingZeros64(x);
+#elif defined(_WIN64)
+#if defined(__AVX2__) || defined(__BMI__)
+    return (int)_tzcnt_u64(x);
+#else
+    unsigned long r;
+    _BitScanForward64(&r, x);
+    return (int)r;
+#endif
+#else
+    int l = __builtin_ctz((unsigned)x);
+    int h = __builtin_ctz((unsigned)(x >> 32)) + 32;
+    return !!((unsigned)x) ? l : h;
+#endif
+}
+
 llvm::MapVector<StringAttr, int32_t>
 LinearLayout::getFreeVariableMasks() const {
   std::unique_ptr<uint64_t[]> mat = getMatrix(*this);

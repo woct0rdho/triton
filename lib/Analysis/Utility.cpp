@@ -682,18 +682,18 @@ bool cvtReordersRegisters(RankedTensorType srcTy, RankedTensorType dstTy) {
 
 bool cvtNeedsWarpShuffle(RankedTensorType srcTy, RankedTensorType dstTy) {
   MLIRContext *ctx = srcTy.getContext();
-  std::optional<LinearLayout> srcLayout =
-      toLinearLayout(srcTy.getShape(), srcTy.getEncoding());
-  std::optional<LinearLayout> dstLayout =
-      toLinearLayout(dstTy.getShape(), dstTy.getEncoding());
+  std::optional<triton::LinearLayout> srcLayout =
+      triton::gpu::toLinearLayout(srcTy.getShape(), srcTy.getEncoding());
+  std::optional<triton::LinearLayout> dstLayout =
+      triton::gpu::toLinearLayout(dstTy.getShape(), dstTy.getEncoding());
   if (srcLayout.has_value() && dstLayout.has_value()) {
     // comp describes the layout function for converting from src to dst.
-    LinearLayout comp = srcLayout->invertAndCompose(*dstLayout);
+    triton::LinearLayout comp = srcLayout->invertAndCompose(*dstLayout);
     StringAttr kWarp = StringAttr::get(ctx, "warp");
     StringAttr kBlock = StringAttr::get(ctx, "block");
-    if (comp.divideRight(LinearLayout::identity1D(comp.getInDimSize(kWarp),
+    if (comp.divideRight(triton::LinearLayout::identity1D(comp.getInDimSize(kWarp),
                                                   kWarp, kWarp) *
-                         LinearLayout::identity1D(comp.getInDimSize(kBlock),
+                         triton::LinearLayout::identity1D(comp.getInDimSize(kBlock),
                                                   kBlock, kBlock))
             .has_value()) {
       return true;

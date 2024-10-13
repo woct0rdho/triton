@@ -12,8 +12,9 @@
 #define DISPATCH_ARGS_3(t1, t2, t3) t1 v1, t2 v2, t3 v3
 #define DISPATCH_ARGS_4(t1, t2, t3, t4) t1 v1, t2 v2, t3 v3, t4 v4
 #define DISPATCH_ARGS_N(_4, _3, _2, _1, _0, N, ...) DISPATCH_ARGS##N
+#define DISPATCH_ARGS_N_TUPLE(tuple) DISPATCH_ARGS_N tuple
 #define DISPATCH_ARGS(...)                                                     \
-  DISPATCH_ARGS_N(_0, ##__VA_ARGS__, _4, _3, _2, _1, _0)                       \
+  DISPATCH_ARGS_N_TUPLE((_0, __VA_ARGS__, _4, _3, _2, _1, _0))                 \
   (__VA_ARGS__)
 
 #define DISPATCH_VALS_0()
@@ -22,18 +23,20 @@
 #define DISPATCH_VALS_3(t1, t2, t3) , v1, v2, v3
 #define DISPATCH_VALS_4(t1, t2, t3, t4) , v1, v2, v3, v4
 #define DISPATCH_VALS_N(_4, _3, _2, _1, _0, N, ...) DISPATCH_VALS##N
+#define DISPATCH_VALS_N_TUPLE(tuple) DISPATCH_VALS_N tuple
 #define DISPATCH_VALS(...)                                                     \
-  DISPATCH_VALS_N(_0, ##__VA_ARGS__, _4, _3, _2, _1, _0)                       \
+  DISPATCH_VALS_N_TUPLE((_0, __VA_ARGS__, _4, _3, _2, _1, _0))                 \
   (__VA_ARGS__)
 
 #define DEFINE_DISPATCH_TEMPLATE(CheckSuccess, FuncName, ExternLib, FuncType,  \
                                  ...)                                          \
   template <>                                                                  \
-  ExternLib::RetType FuncName<CheckSuccess>(DISPATCH_ARGS(__VA_ARGS__)) {      \
+  ExternLib::RetType FuncName<CheckSuccess>(                                   \
+    __VA_OPT__(DISPATCH_ARGS(__VA_ARGS__))) {                                  \
     typedef typename ExternLib::RetType (*FuncType##_t)(__VA_ARGS__);          \
     static FuncType##_t func = nullptr;                                        \
     return Dispatch<ExternLib>::exec<CheckSuccess, FuncType##_t>(              \
-        func, #FuncType DISPATCH_VALS(__VA_ARGS__));                           \
+        func, #FuncType __VA_OPT__(DISPATCH_VALS(__VA_ARGS__)));               \
   }
 
 #define DEFINE_DISPATCH(ExternLib, FuncName, FuncType, ...)                    \

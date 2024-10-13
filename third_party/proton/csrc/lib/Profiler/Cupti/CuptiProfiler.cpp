@@ -225,7 +225,7 @@ struct CuptiProfiler::CuptiProfilerPimpl
 void CuptiProfiler::CuptiProfilerPimpl::allocBuffer(uint8_t **buffer,
                                                     size_t *bufferSize,
                                                     size_t *maxNumRecords) {
-  *buffer = static_cast<uint8_t *>(aligned_alloc(AlignSize, BufferSize));
+  *buffer = static_cast<uint8_t *>(_aligned_malloc(AlignSize, BufferSize));
   if (*buffer == nullptr) {
     throw std::runtime_error("aligned_alloc failed");
   }
