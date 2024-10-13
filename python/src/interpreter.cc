@@ -36,8 +36,7 @@ template <bool is_min, typename T> T atomic_cmp(T *ptr, T val, std::memory_order
   auto atomic_loc = reinterpret_cast<std::atomic<T> *>(ptr);
   T old_val = atomic_loc->load(order);
   while (cmp(old_val, val)) {
-    T *old_ptr = &old_val;
-    if (atomic_loc->compare_exchange_strong(*old_ptr, val, order, order)) {
+    if (atomic_loc->compare_exchange_strong(old_val, val, order, order)) {
       break;
     }
   }
@@ -60,9 +59,8 @@ template <typename T> T atomic_fadd(T *ptr, T val, std::memory_order order) {
     throw std::invalid_argument("Unsupported data type");
   }
   while (true) {
-    T *old_ptr = &old_val;
     new_val = old_val + val;
-    if (atomic_loc->compare_exchange_strong(*old_ptr, new_val, order, order)) {
+    if (atomic_loc->compare_exchange_strong(old_val, new_val, order, order)) {
       break;
     }
   }
