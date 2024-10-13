@@ -343,15 +343,16 @@ class CUDABackend(BaseBackend):
             ]
             try:
                 subprocess.run(ptxas_cmd, check=True, close_fds=False, stderr=flog)
-                if os.path.exists(fsrc.name):
-                    os.remove(fsrc.name)
-                if os.path.exists(flog.name):
-                    os.remove(flog.name)
+                # On Windows, these files cannot be immediately removed
+                # if os.path.exists(fsrc.name):
+                #     os.remove(fsrc.name)
+                # if os.path.exists(flog.name):
+                #     os.remove(flog.name)
             except subprocess.CalledProcessError as e:
                 with open(flog.name) as log_file:
                     log = log_file.read()
-                if os.path.exists(flog.name):
-                    os.remove(flog.name)
+                # if os.path.exists(flog.name):
+                #     os.remove(flog.name)
 
                 if e.returncode == 255:
                     error = 'Internal Triton PTX codegen error'
