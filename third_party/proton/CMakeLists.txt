@@ -24,6 +24,9 @@ if(PYTHON_INCLUDE_DIRS)
   # using pip install.
   include_directories(${PYTHON_INCLUDE_DIRS})
   include_directories(${PYBIND11_INCLUDE_DIR})
+  if(WIN32)
+    link_directories(${PYTHON_INCLUDE_DIRS}/../libs)
+  endif()
 else()
   # Otherwise, we might be building from top CMakeLists.txt directly.
   # Try to find Python and pybind11 packages.
@@ -50,3 +53,7 @@ include_directories(SYSTEM ${ROCTRACER_INCLUDE_DIR})
 target_compile_definitions(proton PRIVATE __HIP_PLATFORM_AMD__)
 
 target_link_libraries(proton PRIVATE ${Python_LIBRARIES} ${PROTON_PYTHON_LDFLAGS})
+
+if(WIN32)
+  target_link_libraries(proton PRIVATE dlfcn)
+endif()

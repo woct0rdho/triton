@@ -1,3 +1,1 @@
-add_triton_library(dlfcn
-  dlfcn.c
-)
+add_library(dlfcn STATIC ${CMAKE_CURRENT_SOURCE_DIR}/dlfcn.c)
