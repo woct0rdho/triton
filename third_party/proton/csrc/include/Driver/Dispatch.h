@@ -23,7 +23,7 @@
 #define DISPATCH_VALS_3(t1, t2, t3) , v1, v2, v3
 #define DISPATCH_VALS_4(t1, t2, t3, t4) , v1, v2, v3, v4
 #define DISPATCH_VALS_N(_4, _3, _2, _1, _0, N, ...) DISPATCH_VALS##N
-#define DISPATCH_VALS_N_TUPLE(tuple) DISPATCH_VALS_N tuple
+#define DISPATCH_VALS_N_TUPLE(tuple) DISPATCH_VALS_N tuple // Fix for MSVC
 #define DISPATCH_VALS(...)                                                     \
   DISPATCH_VALS_N_TUPLE((_0, __VA_ARGS__, _4, _3, _2, _1, _0))                 \
   (__VA_ARGS__)

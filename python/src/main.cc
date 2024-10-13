@@ -10,7 +10,8 @@ namespace py = pybind11;
 #define FOR_EACH_4(MACRO, X, ...) MACRO(X) FOR_EACH_3(MACRO, __VA_ARGS__)
 
 #define FOR_EACH_NARG(...) FOR_EACH_NARG_(__VA_ARGS__, FOR_EACH_RSEQ_N())
-#define FOR_EACH_NARG_(...) FOR_EACH_ARG_N(__VA_ARGS__)
+#define FOR_EACH_NARG_(...) FOR_EACH_ARG_N_TUPLE((__VA_ARGS__))
+#define FOR_EACH_ARG_N_TUPLE(tuple) FOR_EACH_ARG_N tuple // Fix for MSVC
 #define FOR_EACH_ARG_N(_1, _2, _3, _4, N, ...) N
 #define FOR_EACH_RSEQ_N() 4, 3, 2, 1, 0
 
@@ -41,9 +42,7 @@ void init_triton_llvm(pybind11::module &&m);
 void init_triton_interpreter(pybind11::module &&m);
 void init_triton_passes(pybind11::module &&m);
 void init_triton_stacktrace_hook(pybind11::module &m);
-// FOR_EACH_P(DECLARE_BACKEND, TRITON_BACKENDS_TUPLE)
-void init_triton_nvidia(pybind11::module &&m);
-void init_triton_amd(pybind11::module &&m);
+FOR_EACH_P(DECLARE_BACKEND, TRITON_BACKENDS_TUPLE)
 
 PYBIND11_MODULE(libtriton, m) {
   m.doc() = "Python bindings to the C++ Triton API";
@@ -53,7 +52,5 @@ PYBIND11_MODULE(libtriton, m) {
   init_triton_passes(m.def_submodule("passes"));
   init_triton_interpreter(m.def_submodule("interpreter"));
   init_triton_llvm(m.def_submodule("llvm"));
-  // FOR_EACH_P(INIT_BACKEND, TRITON_BACKENDS_TUPLE)
-  init_triton_nvidia(m.def_submodule("nvidia"));
-  init_triton_amd(m.def_submodule("amd"));
+  FOR_EACH_P(INIT_BACKEND, TRITON_BACKENDS_TUPLE)
 }
