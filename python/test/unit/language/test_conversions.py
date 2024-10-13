@@ -50,7 +50,7 @@ def launch_type_convert_triton(src, src_dtype, dst_dtype, device, rounding=None,
 
 
 @triton.jit
-def exhaustive_populate(dst, offset, BLOCK_SIZE : tl.constexpr, force_odd : tl.constexpr, output_bits : tl.constexpr, max_repr : tl.constexpr):
+def exhaustive_populate(dst, offset : tl.uint32, BLOCK_SIZE : tl.constexpr, force_odd : tl.constexpr, output_bits : tl.constexpr, max_repr : tl.constexpr):
 
     idxs = tl.program_id(0) * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
     vals = (idxs + offset).to(tl.uint32)
