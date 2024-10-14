@@ -4235,6 +4235,8 @@ def test_pointer_arguments(device):
                                                (2**31, 'i64'), (2**32 - 1, 'i64'), (2**32, 'i64'), (2**63 - 1, 'i64'),
                                                (-2**63, 'i64'), (2**63, 'u64'), (2**64 - 1, 'u64')])
 def test_value_specialization(value: int, value_type: str, device) -> None:
+    if os.name == "nt" and not -2**31 <= value <= 2**31 - 1 and value_type == "i64":
+        pytest.xfail("On Windows, C long has only 4 bytes")
 
     def repr(specialization):
         spec_type = specialization.signature["VALUE"]
@@ -4256,6 +4258,8 @@ def test_value_specialization(value: int, value_type: str, device) -> None:
 
 @pytest.mark.parametrize("value, overflow", [(2**64 - 1, False), (2**64, True), (-2**63, False), (-2**63 - 1, True)])
 def test_value_specialization_overflow(value: int, overflow: bool, device) -> None:
+    if os.name == "nt" and not -2**31 <= value <= 2**31 - 1:
+        pytest.xfail("On Windows, C long has only 4 bytes")
 
     @triton.jit
     def kernel(VALUE, X):
@@ -4770,6 +4774,8 @@ def test_inline_asm_packed_multiple_outputs(device):
 @pytest.mark.parametrize("lo, hi, iv", [(2**35, 2**35 + 20, 1), (2**35, 2**35 + 20, 2), (2**35, 2**35 + 20, 3),
                                         (15, -16, -1), (15, -16, -2), (15, -16, -3), (-18, -22, -1), (22, 18, -1)])
 def test_for_iv(lo, hi, iv, device):
+    if os.name == "nt":
+        pytest.xfail("On Windows, C long has only 4 bytes")
 
     @triton.jit
     def kernel(Out, lo, hi, iv: tl.constexpr):

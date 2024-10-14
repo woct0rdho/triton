@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import scipy.stats
 import torch
+import os
 
 import triton
 import triton.language as tl
@@ -122,6 +123,9 @@ BLOCK: tl.constexpr = 1024
                                                            for dtype in ['int32', 'int64']
                                                            for const_seed in [True, False]])
 def test_randint(size, seed, device, dtype, const_seed):
+    if os.name == "nt" and seed >= 2**31:
+        pytest.xfail("On Windows, C long has only 4 bytes")
+
     size = list(map(int, size.split(',')))
     torch_dtype = getattr(torch, dtype)
     numpy_dtype = getattr(np, f"u{dtype}")
