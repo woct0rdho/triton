@@ -1,5 +1,6 @@
 import multiprocessing
 import shutil
+import pytest
 
 import triton
 import triton.language as tl
@@ -27,7 +28,8 @@ def compile_fn(attrs):
 
 def test_compile_in_subproc() -> None:
     config = AttrsDescriptor.from_hints({i: 16 for i in range(4)})
-    multiprocessing.set_start_method('fork')
+    if os.name != "nt":
+        multiprocessing.set_start_method('fork')
     proc = multiprocessing.Process(target=compile_fn, args=(config, ))
     proc.start()
     proc.join()
@@ -48,6 +50,9 @@ def compile_fn_dot(attrs):
 
 
 def test_compile_in_forked_subproc(fresh_triton_cache) -> None:
+    if os.name == "nt":
+        pytest.skip("Windows doesn't have fork")
+
     config = AttrsDescriptor.from_hints({0: 16})
     assert multiprocessing.get_start_method() == 'fork'
     proc = multiprocessing.Process(target=compile_fn_dot, args=(config, ))
