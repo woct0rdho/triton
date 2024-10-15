@@ -33,7 +33,6 @@ def _cc_cmd(cc, src, out, include_dirs, library_dirs, libraries):
         cc_cmd += [r"/LIBPATH:C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.41.34120\lib\x64"]
         cc_cmd += [r"/LIBPATH:C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\ucrt\x64"]
         cc_cmd += [r"/LIBPATH:C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64"]
-        cc_cmd += [r"/LIBPATH:C:\Python310\libs"]
 
         cc_cmd += [f'{lib}.lib' for lib in libraries]
         cc_cmd += [f"/OUT:{out}"]
@@ -71,6 +70,8 @@ def _build(name, src, srcdir, library_dirs, include_dirs, libraries):
     py_include_dir = sysconfig.get_paths(scheme=scheme)["include"]
     custom_backend_dirs = set(os.getenv(var) for var in ('TRITON_CUDACRT_PATH', 'TRITON_CUDART_PATH'))
     include_dirs = include_dirs + [srcdir, py_include_dir, *custom_backend_dirs]
+    if os.name == "nt":
+        library_dirs += [os.path.join(sysconfig.get_paths()["data"], "libs")]
     cc_cmd = _cc_cmd(cc, src, so, include_dirs, library_dirs, libraries)
     ret = subprocess.check_call(cc_cmd)
     if ret == 0:
