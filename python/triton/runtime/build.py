@@ -7,6 +7,8 @@ import shutil
 import subprocess
 import setuptools
 
+from .windows import find_msvc_winsdk
+
 
 @contextlib.contextmanager
 def quiet():
@@ -20,20 +22,10 @@ def quiet():
 
 def _cc_cmd(cc, src, out, include_dirs, library_dirs, libraries):
     if cc.lower().endswith("cl.exe"):
-        cc_cmd = [cc, src, "/nologo", "/O2", "/LD"]
-
+        cc_cmd = [cc, src, "/nologo", "/O2", "/LD", "/wd4819"]
         cc_cmd += [f"/I{dir}" for dir in include_dirs if dir is not None]
-        cc_cmd += [r"/IC:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.41.34120\include"]
-        cc_cmd += [r"/IC:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared"]
-        cc_cmd += [r"/IC:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\ucrt"]
-        cc_cmd += [r"/IC:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\um"]
-
         cc_cmd += ["/link"]
         cc_cmd += [f"/LIBPATH:{dir}" for dir in library_dirs]
-        cc_cmd += [r"/LIBPATH:C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.41.34120\lib\x64"]
-        cc_cmd += [r"/LIBPATH:C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\ucrt\x64"]
-        cc_cmd += [r"/LIBPATH:C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64"]
-
         cc_cmd += [f'{lib}.lib' for lib in libraries]
         cc_cmd += [f"/OUT:{out}"]
     else:
@@ -72,6 +64,9 @@ def _build(name, src, srcdir, library_dirs, include_dirs, libraries):
     include_dirs = include_dirs + [srcdir, py_include_dir, *custom_backend_dirs]
     if os.name == "nt":
         library_dirs += [os.path.join(sysconfig.get_paths()["data"], "libs")]
+        msvc_winsdk_inc_dirs, msvc_winsdk_lib_dirs = find_msvc_winsdk()
+        include_dirs += msvc_winsdk_inc_dirs
+        library_dirs += msvc_winsdk_lib_dirs
     cc_cmd = _cc_cmd(cc, src, so, include_dirs, library_dirs, libraries)
     ret = subprocess.check_call(cc_cmd)
     if ret == 0:
