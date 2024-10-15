@@ -33,6 +33,8 @@ def find_msvc_base_vswhere():
         "*",
         "-requires",
         "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
+        "-requires",
+        "Microsoft.VisualStudio.Component.Windows10SDK",
         "-latest",
         "-property",
         "installationPath",
@@ -49,7 +51,7 @@ def find_msvc_base_vswhere():
 
 
 def find_msvc_base_envpath():
-    paths = os.environ.get("PATH", "").split(";")
+    paths = os.environ.get("PATH", "").split(os.pathsep)
     for path in paths:
         path = path.replace("/", "\\")
         match = re.compile(r".*\\VC\\Tools\\MSVC\\").match(path)
