@@ -7,7 +7,8 @@ import shutil
 import subprocess
 import setuptools
 
-from .windows import find_msvc_winsdk
+if os.name == "nt":
+    from .windows import find_msvc_winsdk, find_python
 
 
 @contextlib.contextmanager
@@ -21,7 +22,7 @@ def quiet():
 
 
 def _cc_cmd(cc, src, out, include_dirs, library_dirs, libraries):
-    if cc.lower().endswith("cl.exe"):
+    if cc.lower().endswith("cl") or cc.lower().endswith("cl.exe"):
         cc_cmd = [cc, src, "/nologo", "/O2", "/LD", "/wd4819"]
         cc_cmd += [f"/I{dir}" for dir in include_dirs if dir is not None]
         cc_cmd += ["/link"]
@@ -69,10 +70,7 @@ def _build(name, src, srcdir, library_dirs, include_dirs, libraries):
     custom_backend_dirs = set(os.getenv(var) for var in ('TRITON_CUDACRT_PATH', 'TRITON_CUDART_PATH'))
     include_dirs = include_dirs + [srcdir, py_include_dir, *custom_backend_dirs]
     if os.name == "nt":
-        library_dirs += [os.path.join(sysconfig.get_paths()["data"], "libs")]
-        library_dirs += [os.path.join(os.path.dirname(sys.executable), "libs")]
-        python_version = sysconfig.get_python_version().replace(".", "")
-        library_dirs += [fr"C:\Python{python_version}\libs"]
+        library_dirs += find_python()
         msvc_winsdk_inc_dirs, msvc_winsdk_lib_dirs = find_msvc_winsdk()
         include_dirs += msvc_winsdk_inc_dirs
         library_dirs += msvc_winsdk_lib_dirs

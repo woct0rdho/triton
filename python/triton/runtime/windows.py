@@ -2,6 +2,8 @@ import functools
 import os
 import re
 import subprocess
+import sys
+import sysconfig
 import winreg
 from pathlib import Path
 
@@ -19,10 +21,14 @@ def unparse_version(t, prefix=""):
 
 
 def find_msvc_base_vswhere():
-    program_files = os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)")
+    program_files = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
     vswhere_path = (
         Path(program_files) / "Microsoft Visual Studio" / "Installer" / "vswhere.exe"
     )
+    if not vswhere_path.exists():
+        vswhere_path = Path(
+            r"C:\Program Files\Microsoft Visual Studio\Installer\vswhere.exe"
+        )
     if not vswhere_path.exists():
         return None
 
@@ -138,3 +144,14 @@ def find_msvc_winsdk():
     msvc_inc_dirs, msvc_lib_dirs = find_msvc()
     winsdk_inc_dirs, winsdk_lib_dirs = find_winsdk()
     return msvc_inc_dirs + winsdk_inc_dirs, msvc_lib_dirs + winsdk_lib_dirs
+
+
+@functools.cache
+def find_python():
+    version = sysconfig.get_python_version().replace(".", "")
+    python_lib_dirs = [
+        os.path.join(sysconfig.get_paths()["data"], "libs"),
+        os.path.join(os.path.dirname(sys.executable), "libs"),
+        rf"C:\Python{version}\libs",
+    ]
+    return python_lib_dirs
