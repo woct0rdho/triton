@@ -5,6 +5,7 @@ import subprocess
 import sys
 import sysconfig
 import winreg
+from glob import glob
 from pathlib import Path
 
 
@@ -18,6 +19,13 @@ def parse_version(s, prefix=""):
 
 def unparse_version(t, prefix=""):
     return prefix + ".".join([str(x) for x in t])
+
+
+def max_version(versions):
+    versions = [parse_version(x) for x in versions]
+    versions = [x for x in versions if x is not None]
+    version = unparse_version(max(versions))
+    return version
 
 
 def find_msvc_base_vswhere():
@@ -72,18 +80,31 @@ def find_msvc_base_envpath():
     return None
 
 
+def find_msvc_base_hardcoded():
+    msvc_base_path = Path(r"C:\Program Files (x86)\Microsoft Visual Studio")
+    if not msvc_base_path.exists():
+        msvc_base_path = Path(r"C:\Program Files\Microsoft Visual Studio")
+    if not msvc_base_path.exists():
+        return None
+
+    paths = glob(str(msvc_base_path / "*" / "*" / "VC" / "Tools" / "MSVC"))
+    if not paths:
+        return None
+    # Heuristic to find the highest version
+    return Path(sorted(paths)[-1])
+
+
 def find_msvc():
     msvc_base_path = find_msvc_base_vswhere()
     if msvc_base_path is None:
         msvc_base_path = find_msvc_base_envpath()
     if msvc_base_path is None:
+        msvc_base_path = find_msvc_base_hardcoded()
+    if msvc_base_path is None:
         print("WARNING: Failed to find MSVC.")
         return [], []
 
-    versions = [parse_version(x) for x in os.listdir(msvc_base_path)]
-    versions = [x for x in versions if x is not None]
-    version = unparse_version(max(versions))
-
+    version = max_version(os.listdir(msvc_base_path))
     return (
         [str(msvc_base_path / version / "include")],
         [str(msvc_base_path / version / "lib" / "x64")],
@@ -122,10 +143,7 @@ def find_winsdk():
         print("WARNING: Failed to find Windows SDK.")
         return [], []
 
-    versions = [parse_version(x) for x in os.listdir(winsdk_base_path / "Include")]
-    versions = [x for x in versions if x is not None]
-    version = unparse_version(max(versions))
-
+    version = max_version(os.listdir(winsdk_base_path / "Include"))
     return (
         [
             str(winsdk_base_path / "Include" / version / "shared"),
