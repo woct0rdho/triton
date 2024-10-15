@@ -150,7 +150,8 @@ def find_msvc_winsdk():
 def find_python():
     version = sysconfig.get_python_version().replace(".", "")
     python_lib_dirs = [
-        os.path.join(sysconfig.get_paths()["data"], "libs"),
+        os.path.join(os.path.dirname(sysconfig.get_paths()["stdlib"]), "libs"),
+        os.path.join(os.path.dirname(sysconfig.get_paths()["platstdlib"]), "libs"),
         os.path.join(os.path.dirname(sys.executable), "libs"),
         rf"C:\Python{version}\libs",
     ]
