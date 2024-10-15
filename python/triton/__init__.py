@@ -1,6 +1,18 @@
 """isort:skip_file"""
 __version__ = '3.0.0'
 
+# Users may not know how to add cl and CUDA to PATH. Let's do it before loading anything
+import os
+if os.name == "nt":
+    from .windows_utils import find_cuda, find_msvc_winsdk
+    msvc_winsdk_inc_dirs, _ = find_msvc_winsdk()
+    if msvc_winsdk_inc_dirs:
+        cl_path = msvc_winsdk_inc_dirs[0].replace(r"\include", r"\bin\Hostx64\x64")
+        os.environ["PATH"] = cl_path + os.pathsep + os.environ["PATH"]
+    cuda_bin_path, _, _ = find_cuda()
+    if cuda_bin_path:
+        os.environ["PATH"] = cuda_bin_path + os.pathsep + os.environ["PATH"]
+
 # ---------------------------------------
 # Note: import order is significant here.
 

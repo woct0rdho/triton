@@ -12,8 +12,9 @@ from triton.backends.driver import GPUDriver
 dirname = os.path.dirname(os.path.realpath(__file__))
 include_dir = [os.path.join(dirname, "include")]
 if os.name == "nt":
-    cuda_path = os.environ.get("CUDA_PATH")
-    include_dir += [f"{cuda_path}\\include"]
+    from triton.windows_utils import find_cuda
+    _, cuda_inc_dirs, _ = find_cuda()
+    include_dir += cuda_inc_dirs
 libdevice_dir = os.path.join(dirname, "lib")
 libraries = ['cuda']
 
@@ -21,7 +22,8 @@ libraries = ['cuda']
 @functools.lru_cache()
 def libcuda_dirs():
     if os.name == "nt":
-        return [os.path.join(cuda_path, "lib", "x64")]
+        _, _, cuda_lib_dirs = find_cuda()
+        return cuda_lib_dirs
 
     env_libcuda_path = os.getenv("TRITON_LIBCUDA_PATH")
     if env_libcuda_path:

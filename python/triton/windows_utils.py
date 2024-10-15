@@ -21,10 +21,12 @@ def unparse_version(t, prefix=""):
     return prefix + ".".join([str(x) for x in t])
 
 
-def max_version(versions):
-    versions = [parse_version(x) for x in versions]
+def max_version(versions, prefix=""):
+    versions = [parse_version(x, prefix) for x in versions]
     versions = [x for x in versions if x is not None]
-    version = unparse_version(max(versions))
+    if not versions:
+        return None
+    version = unparse_version(max(versions), prefix)
     return version
 
 
@@ -105,6 +107,10 @@ def find_msvc():
         return [], []
 
     version = max_version(os.listdir(msvc_base_path))
+    if version is None:
+        print("WARNING: Failed to find MSVC.")
+        return [], []
+
     return (
         [str(msvc_base_path / version / "include")],
         [str(msvc_base_path / version / "lib" / "x64")],
@@ -144,6 +150,10 @@ def find_winsdk():
         return [], []
 
     version = max_version(os.listdir(winsdk_base_path / "Include"))
+    if version is None:
+        print("WARNING: Failed to find Windows SDK.")
+        return [], []
+
     return (
         [
             str(winsdk_base_path / "Include" / version / "shared"),
@@ -174,3 +184,25 @@ def find_python():
         rf"C:\Python{version}\libs",
     ]
     return python_lib_dirs
+
+
+@functools.cache
+def find_cuda():
+    cuda_base_path = os.environ.get("CUDA_PATH")
+    if cuda_base_path is not None:
+        cuda_base_path = Path(cuda_base_path)
+        if not cuda_base_path.exists():
+            cuda_base_path = None
+
+    if cuda_base_path is None:
+        paths = glob(r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12*")
+        if not paths:
+            return None, [], []
+        # Heuristic to find the highest version
+        cuda_base_path = Path(sorted(paths)[-1])
+
+    return (
+        str(cuda_base_path / "bin"),
+        [str(cuda_base_path / "include")],
+        [str(cuda_base_path / "lib" / "x64")],
+    )

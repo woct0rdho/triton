@@ -8,7 +8,7 @@ import subprocess
 import setuptools
 
 if os.name == "nt":
-    from .windows import find_msvc_winsdk, find_python
+    from triton.windows_utils import find_msvc_winsdk, find_python
 
 
 @contextlib.contextmanager
@@ -44,12 +44,6 @@ def _build(name, src, srcdir, library_dirs, include_dirs, libraries):
     # try to avoid setuptools if possible
     cc = os.environ.get("CC")
     if cc is None:
-        # Users may not know how to add cl to PATH. Let's do it for them
-        if os.name == "nt":
-            msvc_winsdk_inc_dirs, _ = find_msvc_winsdk()
-            if msvc_winsdk_inc_dirs:
-                cl_path = msvc_winsdk_inc_dirs[0].replace(r"\include", r"\bin\Hostx64\x64")
-            os.environ["PATH"] = cl_path + os.pathsep + os.environ["PATH"]
         # TODO: support more things here.
         cl = shutil.which("cl")
         gcc = shutil.which("gcc")
