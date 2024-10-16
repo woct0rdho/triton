@@ -186,20 +186,40 @@ def find_python():
     return python_lib_dirs
 
 
+def check_cuda(cuda_base_path):
+    return all(
+        x.exists()
+        for x in [
+            cuda_base_path / "bin" / "cudart64_12.dll",
+            cuda_base_path / "bin" / "ptxas.exe",
+            cuda_base_path / "include" / "cuda.h",
+            cuda_base_path / "lib" / "x64" / "cuda.lib",
+        ]
+    )
+
+
 @functools.cache
 def find_cuda():
     cuda_base_path = os.environ.get("CUDA_PATH")
     if cuda_base_path is not None:
         cuda_base_path = Path(cuda_base_path)
-        if not cuda_base_path.exists():
+        if not check_cuda(cuda_base_path):
             cuda_base_path = None
 
     if cuda_base_path is None:
         paths = glob(r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12*")
-        if not paths:
-            return None, [], []
         # Heuristic to find the highest version
-        cuda_base_path = Path(sorted(paths)[-1])
+        paths = sorted(paths)[::-1]
+        for path in paths:
+            cuda_base_path = Path(path)
+            if check_cuda(cuda_base_path):
+                break
+            else:
+                cuda_base_path = None
+
+    if cuda_base_path is None:
+        print("WARNING: Failed to find CUDA.")
+        return None, [], []
 
     return (
         str(cuda_base_path / "bin"),
